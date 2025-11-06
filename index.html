@@ -30,9 +30,86 @@
         .header {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
-            padding: 32px 24px;
+            padding: 32px 24px 24px 24px;
             text-align: center;
             position: relative;
+        }
+        
+        .search-section {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .search-section input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .search-section input[type="text"]:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.2);
+        }
+        
+        .search-section input[type="text"]::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .platform-filters-label {
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.95);
+            font-size: 13px;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        #platformFilters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            min-height: 40px;
+            align-items: center;
+        }
+        
+        #platformFilters .platform-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        #platformFilters .platform-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-1px);
+        }
+        
+        #platformFilters .platform-btn.active {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
         }
 
         .save-buttons {
@@ -293,13 +370,27 @@
                 padding: 12px;
             }
             .header {
-                padding: 24px 20px;
+                padding: 24px 16px 16px 16px;
             }
             .content {
                 padding: 20px;
             }
             .footer {
                 padding: 16px 20px;
+            }
+            .search-section {
+                padding: 12px 16px;
+            }
+            .search-section input[type="text"] {
+                min-width: 100%;
+                margin-bottom: 8px;
+            }
+            .search-section > div:first-child {
+                flex-direction: column;
+            }
+            .search-section .save-btn {
+                width: 100%;
+                margin-bottom: 8px;
             }
             .header-info {
                 grid-template-columns: 1fr;
@@ -341,19 +432,18 @@
             <div class="header-title">热点新闻分析</div>
             
             <!-- 搜索和筛选区域 -->
-            <div class="search-section" style="margin-top: 20px; padding: 0 24px;">
-                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
-                    <input type="text" id="searchKeyword" placeholder="搜索关键词..." 
-                           style="flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid rgba(255,255,255,0.3); 
-                                  border-radius: 6px; background: rgba(255,255,255,0.1); color: white; 
-                                  font-size: 14px; backdrop-filter: blur(10px);"
+            <div class="search-section">
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="searchKeyword" placeholder="🔍 搜索关键词..." 
                            onkeypress="if(event.key==='Enter') searchNews()">
-                    <button class="save-btn" onclick="searchNews()" style="white-space: nowrap;">搜索</button>
-                    <button class="save-btn" onclick="loadLatestNews()" style="white-space: nowrap;">最新</button>
-                    <button class="save-btn" onclick="resetFilters()" style="white-space: nowrap;">重置</button>
+                    <button class="save-btn" onclick="searchNews()" style="white-space: nowrap; padding: 12px 20px; font-weight: 600; font-size: 14px;">搜索</button>
+                    <button class="save-btn" onclick="loadLatestNews()" style="white-space: nowrap; padding: 12px 20px; font-weight: 600; font-size: 14px;">最新</button>
+                    <button class="save-btn" onclick="resetFilters()" style="white-space: nowrap; padding: 12px 20px; font-weight: 600; font-size: 14px;">重置</button>
                 </div>
-                <div id="platformFilters" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px;">
+                <div class="platform-filters-label">📌 平台筛选：</div>
+                <div id="platformFilters">
                     <!-- 平台筛选按钮将通过 JavaScript 动态生成 -->
+                    <div style="color: rgba(255,255,255,0.7); padding: 8px; font-size: 13px;">加载平台列表中...</div>
                 </div>
             </div>
             
@@ -379,145 +469,10 @@
 
         <div class="content" id="newsContent">
             <!-- 新闻内容将通过 JavaScript 动态加载 -->
-            <div class="word-group">
-                <div class="word-header">
-                    <div class="word-info">
-                        <div class="word-name">ai 人工智能</div>
-                        <div class="word-count hot">3 条</div>
-                    </div>
-                    <div class="word-index">1/4</div>
-                </div>
-
-                <div class="news-item">
-                    <div class="news-number">1</div>
-                    <div class="news-content">
-                        <div class="news-header">
-                            <span class="source-name">财联社热门</span>
-                            <span class="rank-num high">7-8</span>
-                            <span class="time-info">00:23~07:17</span>
-                            <span class="count-info">15次</span>
-                        </div>
-                        <div class="news-title">
-                            <a href="https://www.cls.cn/detail/2057563" target="_blank" class="news-link">上市首日暴涨140% 军用无人机公司登陆纽交所 AI打造产品核心竞争力</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="news-item">
-                    <div class="news-number">2</div>
-                    <div class="news-content">
-                        <div class="news-header">
-                            <span class="source-name">tieba</span>
-                            <span class="rank-num">18-19</span>
-                            <span class="time-info">00:23~07:17</span>
-                            <span class="count-info">15次</span>
-                        </div>
-                        <div class="news-title">
-                            <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28342819&topic_name=%E4%BC%8A%E6%9C%97%E7%96%91%E7%94%A8AI%E4%BC%AA%E9%80%A0%E4%BB%A5%E5%86%9BF35%E6%AE%8B%E9%AA%B8%E5%9B%BE" target="_blank" class="news-link">伊朗疑用AI伪造以军F35残骸图</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="news-item">
-                    <div class="news-number">3</div>
-                    <div class="news-content">
-                        <div class="news-header">
-                            <span class="source-name">zhihu</span>
-                            <span class="rank-num top">5-13</span>
-                            <span class="time-info">00:23~07:17</span>
-                            <span class="count-info">15次</span>
-                        </div>
-                        <div class="news-title">
-                            <a href="https://www.zhihu.com/question/596907281" target="_blank" class="news-link">罗杰·彭罗斯说无论意识是什么，都绝对不是一种计算。意思是：任何 AI 都不可能产生意识？</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="word-group">
-                <div class="word-header">
-                    <div class="word-info">
-                        <div class="word-name">DeepSeek 梁文锋</div>
-                        <div class="word-count">1 条</div>
-                    </div>
-                    <div class="word-index">2/4</div>
-                </div>
-
-                <div class="news-item">
-                    <div class="news-number">1</div>
-                    <div class="news-content">
-                        <div class="news-header">
-                            <span class="source-name">华尔街见闻</span>
-                            <span class="rank-num high">8-9</span>
-                            <span class="time-info">00:23~07:17</span>
-                            <span class="count-info">15次</span>
-                        </div>
-                        <div class="news-title">
-                            <a href="https://wallstreetcn.com/articles/3749141" target="_blank" class="news-link">恒生生科指数1月以来涨超60%，中国创新药的"DeepSeek时刻"超过了AI</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="word-group">
-                <div class="word-header">
-                    <div class="word-info">
-                        <div class="word-name">哪吒 饺子</div>
-                        <div class="word-count">1 条</div>
-                    </div>
-                    <div class="word-index">3/4</div>
-                </div>
-
-                <div class="news-item">
-                    <div class="news-number">1</div>
-                    <div class="news-content">
-                        <div class="news-header">
-                            <span class="source-name">百度热搜</span>
-                            <span class="rank-num">24-30</span>
-                            <span class="time-info">00:57~06:55</span>
-                            <span class="count-info">7次</span>
-                        </div>
-                        <div class="news-title">
-                            <a href="https://www.baidu.com/s?wd=%E3%80%8A%E5%93%AA%E5%90%922%E3%80%8B%E7%89%87%E6%96%B9%E6%88%96%E5%88%86%E8%B4%A652%E4%BA%BF%E5%85%83" target="_blank" class="news-link">《哪吒2》片方或分账52亿元</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="word-group">
-                <div class="word-header">
-                    <div class="word-info">
-                        <div class="word-name">米哈游 原神 星穹铁道</div>
-                        <div class="word-count">1 条</div>
-                    </div>
-                    <div class="word-index">4/4</div>
-                </div>
-
-                <div class="news-item">
-                    <div class="news-number">1</div>
-                    <div class="news-content">
-                        <div class="news-header">
-                            <span class="source-name">zhihu</span>
-                            <span class="rank-num top">5</span>
-                            <span class="time-info">06:55~07:17</span>
-                            <span class="count-info">2次</span>
-                        </div>
-                        <div class="news-title">
-                            <a href="https://www.zhihu.com/question/1905395386765537540" target="_blank" class="news-link">目前原神所有自机角色谁最有可能出新形态?</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div style="text-align: center; padding: 40px; color: #666;">加载中...</div>
         </div>
 
-        <div class="footer">
-            <div class="footer-content">
-                由 <span class="project-name">TrendRadar</span> 生成 · 
-                <a href="https://github.com/sansan0/TrendRadar" target="_blank" class="footer-link">
-                    GitHub 开源项目
-                </a>
-            </div>
-        </div>
+        <!-- Footer removed -->
     </div>
 
     <script>
@@ -788,10 +743,14 @@
             const container = document.getElementById('platformFilters');
             container.innerHTML = '';
             
+            if (!allPlatforms || allPlatforms.length === 0) {
+                container.innerHTML = '<div style="color: rgba(255,255,255,0.7); padding: 8px; font-size: 13px;">暂无平台数据</div>';
+                return;
+            }
+            
             allPlatforms.forEach(platform => {
                 const button = document.createElement('button');
-                button.className = 'save-btn';
-                button.style.cssText = 'white-space: nowrap; font-size: 12px; padding: 6px 12px;';
+                button.className = 'platform-btn';
                 button.textContent = platform.name;
                 button.dataset.platformId = platform.id;
                 button.onclick = () => togglePlatform(platform.id);
@@ -806,15 +765,15 @@
             
             if (index > -1) {
                 selectedPlatforms.splice(index, 1);
-                button.style.background = 'rgba(255, 255, 255, 0.2)';
+                button.classList.remove('active');
             } else {
                 selectedPlatforms.push(platformId);
-                button.style.background = 'rgba(255, 255, 255, 0.4)';
+                button.classList.add('active');
             }
             
             // 如果有搜索关键词，重新搜索
             const keyword = document.getElementById('searchKeyword').value;
-            if (keyword) {
+            if (keyword && keyword.trim()) {
                 searchNews();
             } else {
                 loadLatestNews();
@@ -855,6 +814,9 @@
 
         // 加载最新新闻
         async function loadLatestNews() {
+            const container = document.getElementById('newsContent');
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">加载中...</div>';
+            
             try {
                 const params = new URLSearchParams({ limit: 50 });
                 
@@ -869,9 +831,11 @@
                     renderNews(result.data);
                     updateHeaderInfo(result.data);
                 } else {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">加载失败: ' + (result.message || '未知错误') + '</div>';
                     console.error('加载最新新闻失败:', result.message);
                 }
             } catch (error) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">加载失败: ' + error.message + '</div>';
                 console.error('加载最新新闻失败:', error);
             }
         }
@@ -912,7 +876,14 @@
                         </div>
                 `;
 
-                newsList.forEach((news, index) => {
+                // 按排名排序（rank越小越靠前）
+                const sortedNewsList = [...newsList].sort((a, b) => {
+                    const rankA = a.rank || 999;
+                    const rankB = b.rank || 999;
+                    return rankA - rankB;
+                });
+                
+                sortedNewsList.forEach((news, index) => {
                     const rankClass = news.rank <= 10 ? 'top' : news.rank <= 20 ? 'high' : '';
                     html += `
                         <div class="news-item">
