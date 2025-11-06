@@ -339,27 +339,46 @@
                 <button class="save-btn" onclick="saveAsMultipleImages()">分段保存</button>
             </div>
             <div class="header-title">热点新闻分析</div>
+            
+            <!-- 搜索和筛选区域 -->
+            <div class="search-section" style="margin-top: 20px; padding: 0 24px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <input type="text" id="searchKeyword" placeholder="搜索关键词..." 
+                           style="flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid rgba(255,255,255,0.3); 
+                                  border-radius: 6px; background: rgba(255,255,255,0.1); color: white; 
+                                  font-size: 14px; backdrop-filter: blur(10px);"
+                           onkeypress="if(event.key==='Enter') searchNews()">
+                    <button class="save-btn" onclick="searchNews()" style="white-space: nowrap;">搜索</button>
+                    <button class="save-btn" onclick="loadLatestNews()" style="white-space: nowrap;">最新</button>
+                    <button class="save-btn" onclick="resetFilters()" style="white-space: nowrap;">重置</button>
+                </div>
+                <div id="platformFilters" style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px;">
+                    <!-- 平台筛选按钮将通过 JavaScript 动态生成 -->
+                </div>
+            </div>
+            
             <div class="header-info">
                 <div class="info-item">
                     <span class="info-label">报告类型</span>
-                    <span class="info-value">当日汇总</span>
+                    <span class="info-value" id="reportType">当日汇总</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">新闻总数</span>
-                    <span class="info-value">387 条</span>
+                    <span class="info-value" id="totalNews">387 条</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">热点新闻</span>
-                    <span class="info-value">5 条</span>
+                    <span class="info-value" id="hotNews">5 条</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">生成时间</span>
-                    <span class="info-value">06-16 07:17</span>
+                    <span class="info-value" id="generateTime">06-16 07:17</span>
                 </div>
             </div>
         </div>
 
-        <div class="content">
+        <div class="content" id="newsContent">
+            <!-- 新闻内容将通过 JavaScript 动态加载 -->
             <div class="word-group">
                 <div class="word-header">
                     <div class="word-info">
@@ -741,7 +760,233 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             window.scrollTo(0, 0);
+            loadPlatforms();
+            loadLatestNews();
         });
+
+        // 全局变量
+        let selectedPlatforms = [];
+        let allPlatforms = [];
+
+        // 加载平台列表
+        async function loadPlatforms() {
+            try {
+                const response = await fetch('/api/trendradar/api/platforms');
+                const result = await response.json();
+                
+                if (result.code === 200 && result.data) {
+                    allPlatforms = result.data;
+                    renderPlatformFilters();
+                }
+            } catch (error) {
+                console.error('加载平台列表失败:', error);
+            }
+        }
+
+        // 渲染平台筛选按钮
+        function renderPlatformFilters() {
+            const container = document.getElementById('platformFilters');
+            container.innerHTML = '';
+            
+            allPlatforms.forEach(platform => {
+                const button = document.createElement('button');
+                button.className = 'save-btn';
+                button.style.cssText = 'white-space: nowrap; font-size: 12px; padding: 6px 12px;';
+                button.textContent = platform.name;
+                button.dataset.platformId = platform.id;
+                button.onclick = () => togglePlatform(platform.id);
+                container.appendChild(button);
+            });
+        }
+
+        // 切换平台选择
+        function togglePlatform(platformId) {
+            const index = selectedPlatforms.indexOf(platformId);
+            const button = document.querySelector(`[data-platform-id="${platformId}"]`);
+            
+            if (index > -1) {
+                selectedPlatforms.splice(index, 1);
+                button.style.background = 'rgba(255, 255, 255, 0.2)';
+            } else {
+                selectedPlatforms.push(platformId);
+                button.style.background = 'rgba(255, 255, 255, 0.4)';
+            }
+            
+            // 如果有搜索关键词，重新搜索
+            const keyword = document.getElementById('searchKeyword').value;
+            if (keyword) {
+                searchNews();
+            } else {
+                loadLatestNews();
+            }
+        }
+
+        // 搜索新闻
+        async function searchNews() {
+            const keyword = document.getElementById('searchKeyword').value.trim();
+            if (!keyword) {
+                alert('请输入搜索关键词');
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    keyword: keyword,
+                    limit: 50
+                });
+                
+                if (selectedPlatforms.length > 0) {
+                    selectedPlatforms.forEach(p => params.append('platforms', p));
+                }
+
+                const response = await fetch(`/api/trendradar/api/search?${params}`);
+                const result = await response.json();
+                
+                if (result.code === 200 && result.data) {
+                    renderNews(result.data);
+                } else {
+                    alert('搜索失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('搜索失败:', error);
+                alert('搜索失败: ' + error.message);
+            }
+        }
+
+        // 加载最新新闻
+        async function loadLatestNews() {
+            try {
+                const params = new URLSearchParams({ limit: 50 });
+                
+                if (selectedPlatforms.length > 0) {
+                    selectedPlatforms.forEach(p => params.append('platforms', p));
+                }
+
+                const response = await fetch(`/api/trendradar/api/latest?${params}`);
+                const result = await response.json();
+                
+                if (result.code === 200 && result.data) {
+                    renderNews(result.data);
+                    updateHeaderInfo(result.data);
+                } else {
+                    console.error('加载最新新闻失败:', result.message);
+                }
+            } catch (error) {
+                console.error('加载最新新闻失败:', error);
+            }
+        }
+
+        // 重置筛选
+        function resetFilters() {
+            document.getElementById('searchKeyword').value = '';
+            selectedPlatforms = [];
+            renderPlatformFilters();
+            loadLatestNews();
+        }
+
+        // 渲染新闻内容
+        function renderNews(data) {
+            const container = document.getElementById('newsContent');
+            
+            if (!data || !data.results || data.results.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">暂无数据</div>';
+                return;
+            }
+
+            // 按关键词分组新闻
+            const groupedNews = groupNewsByKeyword(data.results);
+            
+            let html = '';
+            let groupIndex = 1;
+            const totalGroups = Object.keys(groupedNews).length;
+
+            for (const [keyword, newsList] of Object.entries(groupedNews)) {
+                html += `
+                    <div class="word-group">
+                        <div class="word-header">
+                            <div class="word-info">
+                                <div class="word-name">${keyword}</div>
+                                <div class="word-count ${newsList.length >= 3 ? 'hot' : ''}">${newsList.length} 条</div>
+                            </div>
+                            <div class="word-index">${groupIndex}/${totalGroups}</div>
+                        </div>
+                `;
+
+                newsList.forEach((news, index) => {
+                    const rankClass = news.rank <= 10 ? 'top' : news.rank <= 20 ? 'high' : '';
+                    html += `
+                        <div class="news-item">
+                            <div class="news-number">${index + 1}</div>
+                            <div class="news-content">
+                                <div class="news-header">
+                                    <span class="source-name">${news.platform_name || news.platform}</span>
+                                    <span class="rank-num ${rankClass}">${news.rank || 'N/A'}</span>
+                                    <span class="time-info">${news.date || ''}</span>
+                                    <span class="count-info">${news.count || 0}次</span>
+                                </div>
+                                <div class="news-title">
+                                    <a href="${news.url || '#'}" target="_blank" class="news-link">${news.title}</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                groupIndex++;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // 按关键词分组新闻
+        function groupNewsByKeyword(newsList) {
+            const grouped = {};
+            
+            newsList.forEach(news => {
+                // 提取关键词（简单实现，可以改进）
+                const keyword = extractKeyword(news.title) || '其他';
+                
+                if (!grouped[keyword]) {
+                    grouped[keyword] = [];
+                }
+                grouped[keyword].push(news);
+            });
+
+            // 按数量排序
+            const sorted = Object.entries(grouped)
+                .sort((a, b) => b[1].length - a[1].length)
+                .reduce((obj, [key, value]) => {
+                    obj[key] = value;
+                    return obj;
+                }, {});
+
+            return sorted;
+        }
+
+        // 提取关键词（简单实现）
+        function extractKeyword(title) {
+            // 这里可以实现更复杂的关键词提取逻辑
+            // 暂时返回标题的前几个字
+            if (title.length > 10) {
+                return title.substring(0, 10);
+            }
+            return title;
+        }
+
+        // 更新头部信息
+        function updateHeaderInfo(data) {
+            if (data.total !== undefined) {
+                document.getElementById('totalNews').textContent = data.total + ' 条';
+            }
+            if (data.results) {
+                document.getElementById('hotNews').textContent = data.results.length + ' 条';
+            }
+            const now = new Date();
+            document.getElementById('generateTime').textContent = 
+                `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ` +
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
     </script>
 </body>
 </html>
